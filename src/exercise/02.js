@@ -2,15 +2,33 @@
 // http://localhost:3000/isolated/exercise/02.js
 
 import * as React from 'react'
+import {useEffect} from 'react'
+
+function useLocalStorageState(identifyer, initialValue) {
+  const [state, setState] = React.useState(
+    () => JSON.parse(window.localStorage.getItem(identifyer)) || initialValue,
+  )
+
+  useEffect(() => {
+    window.localStorage.setItem(identifyer, JSON.stringify(state))
+  }, [state, identifyer])
+
+  function stringifyAndSetState(newState) {
+    setState(JSON.stringify(newState))
+  }
+
+  return [state, stringifyAndSetState]
+}
 
 function Greeting({initialName = ''}) {
-  // 🐨 initialize the state to the value from localStorage
-  // 💰 window.localStorage.getItem('name') ?? initialName
-  const [name, setName] = React.useState(initialName)
+  const [name, setName] = useLocalStorageState('name', initialName)
+  // const [name, setName] = React.useState(
+  //   () => window.localStorage.getItem('name') || initialName,
+  // )
 
-  // 🐨 Here's where you'll use `React.useEffect`.
-  // The callback should set the `name` in localStorage.
-  // 💰 window.localStorage.setItem('name', name)
+  // useEffect(() => {
+  //   window.localStorage.setItem('name', name)
+  // }, [name])
 
   function handleChange(event) {
     setName(event.target.value)
