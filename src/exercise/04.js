@@ -2,7 +2,7 @@
 import * as React from 'react'
 import { useLocalStorageState } from '../utils'
 
-function Board({ squares, status, onClick }) {
+function Board({ squares, onClick }) {
   function renderSquare(i) {
     return (
       <button className="square" onClick={() => onClick(i)}>
@@ -33,28 +33,46 @@ function Board({ squares, status, onClick }) {
 }
 
 function Game() {
-  const [currentSquares, setCurrentSquares] = useLocalStorageState(
-    'currentSquares',
-    Array(9).fill(null)
+  const [history, setHistory] = useLocalStorageState('tic-tac-toe:history', [
+    Array(9).fill(null),
+  ])
+  const [currentStep, setCurrentStep] = useLocalStorageState(
+    'tic-tac-toe:step',
+    0
   )
-  const [movesHistory, setMovesHistory] = React.useState([])
-  const nextValue = calculateNextValue(currentSquares)
+
+  const currentSquares = history[currentStep]
   const winner = calculateWinner(currentSquares)
+  const nextValue = calculateNextValue(currentSquares)
   const status = calculateStatus(winner, currentSquares, nextValue)
+
   function selectSquare(square) {
     if (currentSquares[square] || winner) return
-    const currentSquaresCopy = [...currentSquares]
-    currentSquaresCopy[square] = nextValue
-    setCurrentSquares(currentSquaresCopy)
-    // TODO here: const historyItem = [step]
-    setMovesHistory()
+    const newHistory = history.slice(0, currentStep + 1)
+    const squares = [...currentSquares]
+
+    squares[square] = nextValue
+    setHistory([...newHistory, squares])
+    setCurrentStep(newHistory.length)
   }
 
   function restart() {
-    setCurrentSquares(Array(9).fill(null))
+    setHistory([Array(9).fill(null)])
+    setCurrentStep(0)
   }
 
-  const moves = caclulateMoves(movesHistory)
+  const moves = history.map((stepSquares, step) => {
+    const desc = step === 0 ? 'Go to game start' : `Go to move #${step}`
+    const isCurrentStep = step === currentStep
+    return (
+      <li key={step}>
+        <button disabled={isCurrentStep} onClick={() => setCurrentStep(step)}>
+          {desc} {isCurrentStep ? '(current)' : null}
+        </button>
+      </li>
+    )
+  })
+
   return (
     <div className="game">
       <div className="game-board">
@@ -69,11 +87,6 @@ function Game() {
       </div>
     </div>
   )
-}
-
-function caclulateMoves(movesHistory) {
-  if (movesHistory.length <= 0) return null
-  movesHistory.map((move, index) => <li key={index}>{move}</li>)
 }
 
 // eslint-disable-next-line no-unused-vars
