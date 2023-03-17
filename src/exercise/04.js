@@ -2,28 +2,10 @@
 import * as React from 'react'
 import { useLocalStorageState } from '../utils'
 
-function Board() {
-  const [squares, setSquares] = useLocalStorageState(
-    'squares',
-    Array(9).fill(null)
-  )
-  const nextValue = calculateNextValue(squares)
-  const winner = calculateWinner(squares)
-  const status = calculateStatus(winner, squares, nextValue)
-  function selectSquare(square) {
-    if (squares[square] || winner) return
-    const squaresCopy = [...squares]
-    squaresCopy[square] = nextValue
-    setSquares(squaresCopy)
-  }
-
-  function restart() {
-    setSquares(Array(9).fill(null))
-  }
-
+function Board({ squares, status, onClick }) {
   function renderSquare(i) {
     return (
-      <button className="square" onClick={() => selectSquare(i)}>
+      <button className="square" onClick={() => onClick(i)}>
         {squares[i]}
       </button>
     )
@@ -31,7 +13,6 @@ function Board() {
 
   return (
     <div>
-      <div className="status">{status}</div>
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
@@ -47,21 +28,52 @@ function Board() {
         {renderSquare(7)}
         {renderSquare(8)}
       </div>
-      <button className="restart" onClick={restart}>
-        restart
-      </button>
     </div>
   )
 }
 
 function Game() {
+  const [currentSquares, setCurrentSquares] = useLocalStorageState(
+    'currentSquares',
+    Array(9).fill(null)
+  )
+  const [movesHistory, setMovesHistory] = React.useState([])
+  const nextValue = calculateNextValue(currentSquares)
+  const winner = calculateWinner(currentSquares)
+  const status = calculateStatus(winner, currentSquares, nextValue)
+  function selectSquare(square) {
+    if (currentSquares[square] || winner) return
+    const currentSquaresCopy = [...currentSquares]
+    currentSquaresCopy[square] = nextValue
+    setCurrentSquares(currentSquaresCopy)
+    // TODO here: const historyItem = [step]
+    setMovesHistory()
+  }
+
+  function restart() {
+    setCurrentSquares(Array(9).fill(null))
+  }
+
+  const moves = caclulateMoves(movesHistory)
   return (
     <div className="game">
       <div className="game-board">
-        <Board />
+        <Board onClick={selectSquare} squares={currentSquares} />
+        <button className="restart" onClick={restart}>
+          restart
+        </button>
+      </div>
+      <div className="game-info">
+        <div>{status}</div>
+        <ol>{moves}</ol>
       </div>
     </div>
   )
+}
+
+function caclulateMoves(movesHistory) {
+  if (movesHistory.length <= 0) return null
+  movesHistory.map((move, index) => <li key={index}>{move}</li>)
 }
 
 // eslint-disable-next-line no-unused-vars
