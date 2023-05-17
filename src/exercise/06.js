@@ -9,14 +9,30 @@ import {
   PokemonDataView,
 } from '../pokemon'
 
+function ErrorMessage({ error }) {
+  return (
+    <div role="alert">
+      There was an error:{' '}
+      <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
+    </div>
+  )
+}
+
 function PokemonInfo({ pokemonName }) {
   const [pokemon, setPokemon] = React.useState(null)
+  const [error, setError] = React.useState(null)
   React.useEffect(() => {
     if (!pokemonName) return
     setPokemon(null)
+    setError(null)
     async function effect() {
-      const pokemon = await fetchPokemon(pokemonName)
-      setPokemon(pokemon)
+      try {
+        const pokemon = await fetchPokemon(pokemonName)
+        setPokemon(pokemon)
+      } catch (error) {
+        console.error(error.message)
+        setError(error)
+      }
     }
     effect()
     // return () => {
@@ -24,7 +40,13 @@ function PokemonInfo({ pokemonName }) {
     // }
   }, [pokemonName])
   if (!pokemonName) return 'Submit a pokemon'
-  if (pokemonName && !pokemon) return <PokemonInfoFallback name={pokemonName} />
+  if (error) return <ErrorMessage error={error} />
+  if (pokemonName && !pokemon)
+    return (
+      <>
+        <PokemonInfoFallback name={pokemonName} />
+      </>
+    )
   return <PokemonDataView pokemon={pokemon} />
 }
 
