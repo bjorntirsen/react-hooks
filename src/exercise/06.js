@@ -19,32 +19,24 @@ function ErrorMessage({ error }) {
 }
 
 function PokemonInfo({ pokemonName }) {
-  // idle: no request made yet
-  // pending: request started
-  // resolved: request successful
-  // rejected: request failed
-  const [pokemon, setPokemon] = React.useState(null)
-  const [error, setError] = React.useState(null)
-  const [status, setStatus] = React.useState('idle')
+  const [state, setState] = React.useState({
+    status: 'idle',
+    pokemon: null,
+    error: null,
+  })
+  const { status, pokemon, error } = state
   React.useEffect(() => {
     if (!pokemonName) return
-    setPokemon(null)
-    setStatus('pending')
+    setState({ status: 'pending' })
     async function effect() {
       try {
         const pokemon = await fetchPokemon(pokemonName)
-        setPokemon(pokemon)
-        setStatus('resolved')
+        setState({ status: 'resolved', pokemon })
       } catch (error) {
-        console.error(error.message)
-        setError(error)
-        setStatus('rejected')
+        setState({ status: 'rejected', error })
       }
     }
     effect()
-    // return () => {
-    //   second
-    // }
   }, [pokemonName])
   if (status === 'idle') return 'Submit a pokemon'
   if (status === 'rejected') return <ErrorMessage error={error} />
