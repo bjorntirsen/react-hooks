@@ -19,19 +19,26 @@ function ErrorMessage({ error }) {
 }
 
 function PokemonInfo({ pokemonName }) {
+  // idle: no request made yet
+  // pending: request started
+  // resolved: request successful
+  // rejected: request failed
   const [pokemon, setPokemon] = React.useState(null)
   const [error, setError] = React.useState(null)
+  const [status, setStatus] = React.useState('idle')
   React.useEffect(() => {
     if (!pokemonName) return
     setPokemon(null)
-    setError(null)
+    setStatus('pending')
     async function effect() {
       try {
         const pokemon = await fetchPokemon(pokemonName)
         setPokemon(pokemon)
+        setStatus('resolved')
       } catch (error) {
         console.error(error.message)
         setError(error)
+        setStatus('rejected')
       }
     }
     effect()
@@ -39,9 +46,9 @@ function PokemonInfo({ pokemonName }) {
     //   second
     // }
   }, [pokemonName])
-  if (!pokemonName) return 'Submit a pokemon'
-  if (error) return <ErrorMessage error={error} />
-  if (pokemonName && !pokemon)
+  if (status === 'idle') return 'Submit a pokemon'
+  if (status === 'rejected') return <ErrorMessage error={error} />
+  if (status === 'pending')
     return (
       <>
         <PokemonInfoFallback name={pokemonName} />
